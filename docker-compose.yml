@@ -5,8 +5,12 @@ services:
     image: nginx:1.21.6-alpine
     ports:
       - 8080:80
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
     networks:
       - network
+    depends_on:
+      - login
 
   mongo:
     image: mongo:5.0.7-focal
@@ -14,8 +18,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-    volumes:
-      - ./conf.d:/etc/nginx/conf.d
     networks:
       - network
 
@@ -30,6 +32,26 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_ROOT_USERNAME}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD}
       ME_CONFIG_MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/
+    networks:
+      - network
+
+  login:
+    build:
+      context: ./login
+    volumes:
+      - ./login:/service
+    depends_on:
+      - mongo
+    networks:
+      - network
+
+  signup:
+    build:
+      context: ./signup
+    volumes:
+      - ./signup:/service
+    depends_on:
+      - mongo
     networks:
       - network
 
